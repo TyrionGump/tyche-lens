@@ -1,0 +1,37 @@
+# Dependencies & build output
+node_modules/
+dist/
+target/
+
+# Runtime data store (apps/data-engine)
+/apps/data-engine/data/
+
+# Go build & test artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# Test coverage
+coverage/
+coverage.*
+
+# Env files (.env.example stays tracked)
+.env*
+!.env.example
+
+# Logs
+*.log
+
+# Editor & local tool config
+.idea/
+.vscode/
+.obsidian/
+
+# OS
+.DS_Store
+Thumbs.db

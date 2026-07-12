@@ -1,0 +1,111 @@
+/* The fullscreen comparison matrix: companies as columns, metrics as rows. Sticky column headers, a
+   pinned metric-label column, and collapsible metric groups — the sticky/grid layering that Tailwind
+   utilities can't express. */
+
+.comparisonGrid {
+  display: grid;
+  align-items: stretch;
+}
+.columnHeader {
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  z-index: 2;
+  padding: 14px 14px 13px;
+  min-width: 0;
+  border-bottom: 1px solid var(--border);
+}
+.cornerCell {
+  top: 0;
+  z-index: 3 !important;
+}
+.cornerCell,
+.metricLabel {
+  position: sticky;
+  left: 0;
+  background: var(--card);
+  z-index: 1;
+}
+.cornerCell {
+  border-bottom: 1px solid var(--border);
+}
+.columnHeaderTitle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 7px;
+}
+.quotePrice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 9px;
+}
+.groupLabel {
+  grid-column: 1 / -1;
+  padding: 16px 14px 7px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: transparent;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  position: sticky;
+  left: 0;
+  transition: color 0.12s;
+}
+.groupLabel:hover {
+  color: var(--accent);
+}
+.groupCaret {
+  display: inline-block;
+  transition: rotate 0.15s;
+  font-size: var(--fs-micro);
+}
+.groupLabel.collapsed .groupCaret {
+  rotate: -90deg;
+}
+.groupCount {
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--faint);
+  opacity: 0.8;
+}
+.metricLabel {
+  display: flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  color: var(--dim);
+  white-space: nowrap;
+}
+.metricValue {
+  display: flex;
+  align-items: center;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.metricValue.bestValue {
+  font-weight: 800;
+}
+.footerNote {
+  padding: 11px 14px 4px;
+  font-size: var(--fs-caption);
+  color: var(--faint);
+}

@@ -1,0 +1,302 @@
+@import "tailwindcss";
+
+/* Dark utilities key off the app's existing data-theme attribute. */
+@custom-variant dark (&:where([data-theme="dark"] *));
+
+/* Runtime appearance values live on the themed app root; fixed scales live on :root. */
+.tl-app {
+  --accent: #6b4dfb;
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--card));
+  --radius: 16px;
+  --sidebar-w: 220px;
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  /* Three-zone app frame: a full-width top bar, a sidebar, and a scrolling main area — the main
+     area (not the shell) is the page scroll container. */
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar main";
+  height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+.tl-app[data-theme="light"] {
+  --bg: #f5f6f9;
+  --card: #ffffff;
+  --border: #e9ebf0;
+  --line: #f0f1f5;
+  --ink: #141826;
+  --dim: #727a8c;
+  --faint: #aab0be;
+  --up: #12a150;
+  --down: #e5484d;
+  --shadow: 0 1px 2px rgba(20, 24, 38, 0.04), 0 6px 20px rgba(20, 24, 38, 0.05);
+  --hover: rgba(20, 24, 38, 0.04);
+}
+.tl-app[data-theme="dark"] {
+  --bg: #0e1016;
+  --card: #181b23;
+  --border: #262a35;
+  --line: #22262f;
+  --ink: #eef1f6;
+  --dim: #969eae;
+  --faint: #5b6472;
+  --up: #34d399;
+  --down: #fb7185;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.28);
+  --hover: rgba(255, 255, 255, 0.05);
+}
+
+/* The compact 13px base is intentional for a dense market-data interface. */
+:root {
+  --fs-micro: 10px;
+  --lh-micro: 14px;
+  --fs-caption: 11px;
+  --lh-caption: 16px;
+  --fs-label: 12px;
+  --lh-label: 16px;
+  --fs-body: 13px;
+  --lh-body: 18px;
+  --fs-title: 16px;
+  --lh-title: 22px;
+  --fs-heading: 20px;
+  --lh-heading: 26px;
+  --fs-display: 26px;
+  --lh-display: 30px;
+
+  --rad-chip: 6px;
+  --rad-control: 9px;
+  --rad-panel: 12px;
+  --rad-tray: 24px;
+  --rad-full: 9999px;
+
+  --track-tight: -0.01em;
+  --track-wide: 0.05em;
+}
+
+/* Map Tailwind's color tokens onto the themed variables above, so utilities (bg-card, text-ink,
+   border-border, …) follow light/dark and the runtime accent setting. Box-sizing / margin resets
+   come from Preflight. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-dim: var(--dim);
+  --color-faint: var(--faint);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-hover: var(--hover);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-up-soft: color-mix(in srgb, var(--up) 15%, transparent);
+  --color-down-soft: color-mix(in srgb, var(--down) 15%, transparent);
+  --color-glass: color-mix(in srgb, var(--card) 88%, transparent);
+  --color-chip: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+/* Expose the scale as utilities (text-body, rounded-panel); `inline` points each at the plain var
+   above. Tailwind's default text/radius scales are reset to `initial` so only these named steps
+   exist — an off-scale size can't sneak back in. Cards use var(--radius) directly (settings-
+   adjustable), so the card radius intentionally isn't a token here. */
+@theme inline {
+  --text-*: initial;
+  --text-micro: var(--fs-micro);
+  --text-micro--line-height: var(--lh-micro);
+  --text-caption: var(--fs-caption);
+  --text-caption--line-height: var(--lh-caption);
+  --text-label: var(--fs-label);
+  --text-label--line-height: var(--lh-label);
+  --text-body: var(--fs-body);
+  --text-body--line-height: var(--lh-body);
+  --text-title: var(--fs-title);
+  --text-title--line-height: var(--lh-title);
+  --text-heading: var(--fs-heading);
+  --text-heading--line-height: var(--lh-heading);
+  --text-display: var(--fs-display);
+  --text-display--line-height: var(--lh-display);
+
+  --radius-*: initial;
+  --radius-chip: var(--rad-chip);
+  --radius-control: var(--rad-control);
+  --radius-panel: var(--rad-panel);
+  --radius-tray: var(--rad-tray);
+  --radius-full: var(--rad-full);
+
+  --tracking-*: initial;
+  --tracking-tight: var(--track-tight);
+  --tracking-normal: 0;
+  --tracking-wide: var(--track-wide);
+}
+
+/* The themed .tl-app paints the viewport; this fallback prevents a light-theme overscroll gap. */
+body {
+  background: #f5f6f9;
+}
+
+/* Chromium disables its custom scrollbar when standard Firefox properties are also set. */
+html::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+html::-webkit-scrollbar-track {
+  background: transparent;
+}
+html::-webkit-scrollbar-thumb {
+  background: rgba(128, 134, 148, 0.5);
+  border-radius: var(--rad-full);
+  border: 2.5px solid transparent;
+  background-clip: padding-box;
+}
+html::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 134, 148, 0.75);
+  background-clip: padding-box;
+}
+
+/* JS toggles these on <body> during grid gestures. */
+.tl-noselect,
+.tl-noselect * {
+  user-select: none !important;
+}
+.tl-grabbing,
+.tl-grabbing * {
+  cursor: grabbing !important;
+}
+
+.tl-app {
+  --sb-thumb: color-mix(in srgb, var(--faint) 55%, transparent);
+}
+.tl-app::-webkit-scrollbar,
+.tl-app ::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.tl-app::-webkit-scrollbar-track,
+.tl-app ::-webkit-scrollbar-track {
+  background: transparent;
+}
+.tl-app::-webkit-scrollbar-thumb,
+.tl-app ::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb);
+  border-radius: var(--rad-full);
+  border: 2.5px solid transparent; /* inset gutter so the pill floats */
+  background-clip: padding-box;
+}
+.tl-app::-webkit-scrollbar-thumb:hover,
+.tl-app ::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--faint) 85%, transparent);
+  background-clip: padding-box;
+}
+.tl-app::-webkit-scrollbar-corner,
+.tl-app ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox lacks ::-webkit-scrollbar, so give it the standard thin styling. Scoped here so it never
+   reaches Chromium/WebKit (where it would override the pill above). */
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(128, 134, 148, 0.5) transparent;
+  }
+  .tl-app *,
+  .tl-app {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sb-thumb) transparent;
+  }
+}
+
+.tl-strong {
+  font-weight: 700;
+}
+.tl-muted {
+  color: var(--dim);
+  font-size: var(--fs-label);
+}
+.tl-faint {
+  color: var(--faint);
+  font-size: var(--fs-label);
+}
+.tl-ellip {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tl-up {
+  color: var(--up);
+}
+.tl-down {
+  color: var(--down);
+}
+/* Hide the scrollbar on small glanceable widget lists — they still scroll, just without chrome. */
+.tl-noscrollbar {
+  scrollbar-width: none;
+}
+.tl-noscrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.tl-badge {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: var(--rad-control);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: var(--fs-caption);
+  color: var(--dim);
+}
+.tl-surface {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.tl-iconbtn {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--rad-panel);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: var(--fs-title);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s;
+}
+.tl-iconbtn:hover {
+  background: var(--hover);
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+@keyframes sheetUp {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}
+@keyframes chipIn {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}

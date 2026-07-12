@@ -1,0 +1,266 @@
+openapi: 3.0.3
+info:
+  title: Tyche API
+  description: General backend for Tyche Lens. Prototype surface.
+  version: 0.1.0
+paths:
+  /v1/quotes:
+    get:
+      operationId: getQuotes
+      summary: Current quotes for a set of symbols
+      parameters:
+        - name: symbols
+          in: query
+          required: true
+          description: Comma-separated ticker symbols, e.g. AAPL,MSFT. Max 50.
+          schema:
+            type: string
+            minLength: 1
+      responses:
+        "200":
+          description: Quotes for the known requested symbols, in request order. Unknown symbols are omitted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuotesResponse"
+        "400":
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Quote source unavailable and nothing cached.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/symbols:
+    get:
+      operationId: getSymbols
+      summary: Search the symbol directory
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Case-insensitive substring match on symbol or name. Absent or empty returns the full catalog.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matching listings, sorted by symbol, capped at 20.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SymbolsResponse"
+        "400":
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /v1/quotes/{symbol}/history:
+    get:
+      operationId: getQuoteHistory
+      summary: Price series for one symbol
+      parameters:
+        - name: symbol
+          in: path
+          required: true
+          description: One ticker symbol, e.g. AAPL.
+          schema:
+            type: string
+            minLength: 1
+        - name: points
+          in: query
+          required: false
+          description: Number of samples. Defaults to 70.
+          schema:
+            type: integer
+            minimum: 2
+            maximum: 500
+            default: 70
+      responses:
+        "200":
+          description: Deterministic price series, oldest first, ending at the current price.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HistoryResponse"
+        "400":
+          description: Invalid request.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Unknown symbol.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Internal error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          description: Quote source unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    QuotesResponse:
+      type: object
+      required: [quotes]
+      properties:
+        quotes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Quote"
+    SymbolsResponse:
+      type: object
+      required: [symbols]
+      properties:
+        symbols:
+          type: array
+          items:
+            $ref: "#/components/schemas/Listing"
+    Listing:
+      type: object
+      required: [symbol, name, exchange, sector]
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        exchange:
+          type: string
+        sector:
+          type: string
+    HistoryResponse:
+      type: object
+      required: [symbol, points]
+      properties:
+        symbol:
+          type: string
+        points:
+          type: array
+          description: Price samples, oldest first, ending at the current price.
+          items:
+            type: number
+            format: double
+    Quote:
+      type: object
+      required:
+        - symbol
+        - name
+        - exchange
+        - sector
+        - price
+        - changePct
+        - changeAbs
+        - open
+        - high
+        - low
+        - prevClose
+        - marketCap
+        - volume
+        - week52High
+        - week52Low
+        - peRatio
+        - eps
+        - divYield
+        - beta
+        - asOf
+      properties:
+        symbol:
+          type: string
+        name:
+          type: string
+        exchange:
+          type: string
+        sector:
+          type: string
+        price:
+          type: number
+          format: double
+        changePct:
+          type: number
+          format: double
+          description: Day change in percent, signed.
+        changeAbs:
+          type: number
+          format: double
+          description: Day change in dollars, signed.
+        open:
+          type: number
+          format: double
+        high:
+          type: number
+          format: double
+        low:
+          type: number
+          format: double
+        prevClose:
+          type: number
+          format: double
+        marketCap:
+          type: number
+          format: double
+          description: Raw dollars, not abbreviated.
+        volume:
+          type: number
+          format: double
+          description: Raw share count, not abbreviated.
+        week52High:
+          type: number
+          format: double
+        week52Low:
+          type: number
+          format: double
+        peRatio:
+          type: number
+          format: double
+          nullable: true
+        eps:
+          type: number
+          format: double
+          nullable: true
+        divYield:
+          type: number
+          format: double
+          nullable: true
+          description: Percent, e.g. 0.44 means 0.44%.
+        beta:
+          type: number
+          format: double
+          nullable: true
+        asOf:
+          type: string
+          format: date-time
+          description: When this quote was fetched from the source (UTC).
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Machine-readable code, e.g. invalid_request.
+        message:
+          type: string

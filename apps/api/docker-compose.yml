@@ -1,0 +1,20 @@
+# Local development database. Nothing in the API reads it yet; see
+# "Local database" in README.md for the DSN and lifecycle commands.
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: tyche-api-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tyche
+      POSTGRES_PASSWORD: tyche # local-only credentials
+      POSTGRES_DB: tyche_api
+    ports:
+      - "5432:5432"
+    volumes:
+      # postgres:18+ images keep PGDATA under /var/lib/postgresql, not the
+      # pre-18 /var/lib/postgresql/data — mounting the old path loses data.
+      - pgdata:/var/lib/postgresql
+
+volumes:
+  pgdata:

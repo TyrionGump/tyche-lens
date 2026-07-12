@@ -1,0 +1,223 @@
+/* The watchlist board: one table with uniform, reorderable stat columns. Structural cell alignment
+   (nth-child) and the row/column drag states — the parts Tailwind utilities can't express. */
+
+.check {
+  box-sizing: border-box;
+  width: 17px;
+  height: 17px;
+  border-radius: var(--rad-chip);
+  flex: none;
+  border: 1.5px solid var(--faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: var(--fs-micro);
+  font-weight: 800;
+  transition: all 0.12s;
+  background: var(--card);
+}
+.check.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.rowRemove {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: var(--rad-chip);
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+  font-size: var(--fs-title);
+  line-height: 1;
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+.rowRemove:hover {
+  background: color-mix(in srgb, var(--down) 14%, transparent);
+  color: var(--down);
+}
+
+/* Horizontal overflow is a safety net below the table's intended desktop width. */
+.board {
+  padding: 2px 0 4px;
+  overflow-x: auto;
+  position: relative;
+  min-width: 0;
+}
+.row {
+  min-width: max-content;
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px 9px 8px;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+  position: relative;
+  background: var(--card);
+  transition: background 0.12s;
+  user-select: none;
+}
+.row > * {
+  justify-self: end;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-body);
+}
+.row > :nth-child(-n + 2) {
+  justify-self: start;
+  text-align: left;
+}
+.row:hover {
+  background: var(--hover);
+}
+.row.on {
+  background: color-mix(in srgb, var(--accent) 6%, var(--card));
+}
+.row.dragging {
+  z-index: 10;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.16);
+  outline: 1.5px dashed var(--accent);
+  outline-offset: -1px;
+  border-radius: var(--rad-panel);
+  border-top-color: transparent;
+}
+.head,
+.head:hover {
+  border-top: none;
+  cursor: default;
+  background: transparent;
+  padding-top: 10px;
+  padding-bottom: 7px;
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  letter-spacing: var(--track-wide);
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.head > * {
+  font-size: var(--fs-caption);
+}
+.best {
+  font-weight: 800;
+}
+/* Fixed identity zone (check / company / last / chg) vs draggable stat zone: a quiet divider
+   after Chg % marks where column reordering begins. */
+.row > :nth-child(4) {
+  justify-self: stretch;
+  text-align: right;
+  border-right: 1px solid var(--border);
+  margin-right: -6px;
+  padding-right: 6px;
+}
+.headCol {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: grab;
+  touch-action: none;
+  border-radius: var(--rad-chip);
+  padding: 3px 6px;
+  margin: -3px -6px;
+  justify-self: stretch; /* full-track hit target, not just the text */
+  transition:
+    background 0.12s,
+    color 0.12s;
+}
+.headCol:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+/* Live column drag: dragged column follows the pointer under a ghost; displaced neighbors slide
+   aside; the fixed zone dims to read "not in play". */
+.colDragging {
+  cursor: grabbing;
+  position: relative;
+  z-index: 5;
+}
+.headCol.colDragging {
+  color: var(--accent);
+  background: transparent;
+}
+.colShift {
+  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.colGhost {
+  position: absolute;
+  top: 4px;
+  bottom: 6px;
+  z-index: 6;
+  pointer-events: none;
+  border: 1.5px dashed var(--accent);
+  border-radius: var(--rad-control);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+}
+.board.colDragActive .row > :nth-child(-n + 4),
+.board.colDragActive .rowRemove {
+  opacity: 0.4;
+}
+.board.colDragActive .row {
+  cursor: default;
+}
+/* Selection lives ONLY in the checkbox zone — full row height, generous width. A hairline rail
+   separates it from the row body; it tints when its row is on. */
+.row > .checkZone {
+  padding: 0;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  justify-self: stretch;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: -9px 0 -9px -8px;
+  cursor: pointer;
+  border-right: 1px solid var(--line);
+}
+.row > .checkZone.on {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.row > .checkZone:hover {
+  background: var(--accent-soft);
+}
+.row > .checkZone:hover .check {
+  border-color: var(--accent);
+}
+.companyButton {
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.companyButton[aria-disabled="true"] {
+  cursor: default;
+}
+/* Empty header cell extends the rail up through the head row. */
+.headCheck {
+  justify-self: stretch;
+  align-self: stretch;
+  margin: -10px 0 -7px -8px;
+  border-right: 1px solid var(--line);
+}
+/* Whole row is the drag handle; cursor flips while a row drag is live. */
+.board.rowDragActive .row {
+  cursor: grabbing;
+}
+.row.rowShift {
+  transition: transform 0.18s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.row:hover .rowRemove {
+  opacity: 1;
+}
