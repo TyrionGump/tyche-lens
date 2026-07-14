@@ -1,0 +1,10 @@
+# <Imperative summary, <=50 chars>
+#
+# Commit message rules:
+# - Describe the business-level outcome achieved by bullet points.
+# - Mention notable behavior or workflow impact.
+#
+# Keep the body concise.
+# Avoid low-level implementation details unless they matter.
+# Keep the content natural.
+# Do not mention AI tooling unless explicitly requested.
