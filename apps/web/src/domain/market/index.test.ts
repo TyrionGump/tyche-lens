@@ -9,4 +9,8 @@ describe("market domain public API", () => {
     expect(marketDomain).not.toHaveProperty("searchMarketSymbols");
     expect(marketDomain).not.toHaveProperty("marketQueryKeys");
   });
+
+  it("does not leak internal-only helpers", () => {
+    expect(marketDomain).not.toHaveProperty("generateSampleSeries");
+  });
 });

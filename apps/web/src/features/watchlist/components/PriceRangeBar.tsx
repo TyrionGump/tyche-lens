@@ -1,4 +1,4 @@
-import type { MarketQuote } from "@/domain/market/index.ts";
+import type { MarketQuote } from "@/domain/market";
 import { clampNumber } from "@/shared/utilities/clampNumber.ts";
 import { formatCurrency } from "@/shared/utilities/numberFormatters.ts";
 

@@ -9,7 +9,13 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
-    "paths": { "@/*": ["./src/*"] },
+    "paths": {
+      "@/app/*": ["./src/app/*"],
+      "@/domain/market": ["./src/domain/market/index.ts"],
+      "@/features/dashboard": ["./src/features/dashboard/index.ts"],
+      "@/features/watchlist": ["./src/features/watchlist/index.ts"],
+      "@/shared/*": ["./src/shared/*"]
+    },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",

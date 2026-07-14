@@ -1,4 +1,4 @@
-import { MARKET_QUOTE_FIXTURES } from "@/domain/market/index.ts";
+import { MARKET_QUOTE_FIXTURES } from "@/domain/market";
 import { PercentChangeBadge } from "@/shared/components/PercentChangeBadge.tsx";
 import { SparklineChart } from "@/shared/components/charts/index.ts";
 

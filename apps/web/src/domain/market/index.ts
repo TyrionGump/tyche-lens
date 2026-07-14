@@ -4,7 +4,6 @@ export { MARKET_NEWS_FIXTURES } from "./fixtures/marketNewsFixtures.ts";
 export { MARKET_QUOTE_FIXTURES } from "./fixtures/marketQuoteFixtures.ts";
 export { PORTFOLIO_POSITION_FIXTURES } from "./fixtures/portfolioPositionFixtures.ts";
 export { calculatePortfolio } from "./model/calculatePortfolio.ts";
-export { generateSampleSeries } from "./model/generateSampleSeries.ts";
 export type {
   CalculatedPortfolioPosition,
   MarketIndexQuote,

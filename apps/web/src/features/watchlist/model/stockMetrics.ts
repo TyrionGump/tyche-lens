@@ -1,4 +1,4 @@
-import type { MarketQuote } from "@/domain/market/index.ts";
+import type { MarketQuote } from "@/domain/market";
 import {
   formatCompactNumber,
   formatCurrency,
