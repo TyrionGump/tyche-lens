@@ -1,0 +1,6 @@
+if git diff --cached --quiet -- apps/web; then
+  exit 0
+fi
+
+cd apps/web
+pnpm precommit

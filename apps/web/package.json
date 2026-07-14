@@ -14,6 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "oxfmt --check && oxlint && tsc -b && vitest run",
+    "prepare": "cd ../.. && husky apps/web/.husky",
+    "precommit": "lint-staged",
     "preview": "vite preview",
     "generate:api": "pnpm --package=typescript@5.9.3 --package=openapi-typescript@7.13.0 dlx openapi-typescript ../api/api/openapi.yaml -o src/domain/market/api/generated/openapi.ts"
   },
@@ -34,6 +36,8 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
     "oxfmt": "^0.54.0",
     "oxlint": "^1.69.0",
     "tailwindcss": "^4.3.1",
@@ -41,8 +45,15 @@
     "vite": "^8.0.12",
     "vitest": "^4.1.10"
   },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,mjs,cjs}": [
+      "oxfmt --check --no-error-on-unmatched-pattern",
+      "oxlint"
+    ],
+    "*.{json,jsonc,css,md,mdx,html,yaml,yml}": "oxfmt --check --no-error-on-unmatched-pattern"
+  },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.22.1"
   },
   "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
 }

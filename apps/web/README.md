@@ -48,20 +48,20 @@ The generated API file is committed, so the UI can still be built without regene
 
 ## Scripts
 
-| Command             | Description                                                   |
-| ------------------- | ------------------------------------------------------------- |
-| `pnpm dev`          | Start the Vite development server with HMR                    |
+| Command             | Description                                             |
+| ------------------- | ------------------------------------------------------- |
+| `pnpm dev`          | Start the Vite development server with HMR              |
 | `pnpm generate:api` | Generate TypeScript DTOs from `../api/api/openapi.yaml` |
-| `pnpm test`         | Run the targeted Vitest suite once                            |
-| `pnpm test:watch`   | Run Vitest in watch mode                                      |
-| `pnpm check`        | Check formatting, lint, TypeScript, and tests                 |
-| `pnpm build`        | Type-check and build the production bundle into `dist/`       |
-| `pnpm typecheck`    | Run the TypeScript project build                              |
-| `pnpm lint`         | Lint with oxlint                                              |
-| `pnpm lint:fix`     | Lint and apply safe fixes                                     |
-| `pnpm format`       | Format supported files with oxfmt                             |
-| `pnpm format:check` | Check formatting without modifying files                      |
-| `pnpm preview`      | Serve the production build locally                            |
+| `pnpm test`         | Run the targeted Vitest suite once                      |
+| `pnpm test:watch`   | Run Vitest in watch mode                                |
+| `pnpm check`        | Check formatting, lint, TypeScript, and tests           |
+| `pnpm build`        | Type-check and build the production bundle into `dist/` |
+| `pnpm typecheck`    | Run the TypeScript project build                        |
+| `pnpm lint`         | Lint with oxlint                                        |
+| `pnpm lint:fix`     | Lint and apply safe fixes                               |
+| `pnpm format`       | Format supported files with oxfmt                       |
+| `pnpm format:check` | Check formatting without modifying files                |
+| `pnpm preview`      | Serve the production build locally                      |
 
 `generate:api` runs `openapi-typescript` through `pnpm dlx` with a pinned TypeScript 5: the codegen needs the TypeScript 5 compiler API, which the app's own TypeScript 7 (native) toolchain no longer ships. Bump the pinned versions in the script when upgrading.
 
