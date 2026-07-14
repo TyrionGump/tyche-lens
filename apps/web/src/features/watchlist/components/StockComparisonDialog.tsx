@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import type { MarketQuote } from "@/domain/market/index.ts";
+import type { MarketQuote } from "@/domain/market";
 import { PercentChangeBadge } from "@/shared/components/PercentChangeBadge.tsx";
 import { usePortalContainer } from "@/shared/hooks/usePortalContainer.ts";
 import { mergeClassNames } from "@/shared/utilities/mergeClassNames.ts";

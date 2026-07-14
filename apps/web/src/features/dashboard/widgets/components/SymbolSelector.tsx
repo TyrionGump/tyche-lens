@@ -1,4 +1,4 @@
-import { MARKET_QUOTE_FIXTURES } from "@/domain/market/index.ts";
+import { MARKET_QUOTE_FIXTURES } from "@/domain/market";
 
 const AVAILABLE_SYMBOLS = Object.keys(MARKET_QUOTE_FIXTURES).sort();
 

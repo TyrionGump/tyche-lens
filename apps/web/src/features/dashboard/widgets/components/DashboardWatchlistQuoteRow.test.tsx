@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { MARKET_QUOTE_FIXTURES } from "@/domain/market/index.ts";
+import { MARKET_QUOTE_FIXTURES } from "@/domain/market";
 import { DashboardWatchlistQuoteRow } from "./DashboardWatchlistQuoteRow.tsx";
 
 const marketQuote = MARKET_QUOTE_FIXTURES.AAPL;

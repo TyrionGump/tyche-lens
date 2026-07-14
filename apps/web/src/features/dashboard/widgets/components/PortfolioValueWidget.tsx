@@ -2,7 +2,7 @@ import {
   calculatePortfolio,
   MARKET_QUOTE_FIXTURES,
   PORTFOLIO_POSITION_FIXTURES,
-} from "@/domain/market/index.ts";
+} from "@/domain/market";
 import {
   formatCurrency,
   formatSignedNumber,

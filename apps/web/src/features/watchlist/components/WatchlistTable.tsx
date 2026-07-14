@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { MarketQuote } from "@/domain/market/index.ts";
+import type { MarketQuote } from "@/domain/market";
 import { PercentChangeBadge } from "@/shared/components/PercentChangeBadge.tsx";
 import { mergeClassNames } from "@/shared/utilities/mergeClassNames.ts";
 import { formatCurrency } from "@/shared/utilities/numberFormatters.ts";

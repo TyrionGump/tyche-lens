@@ -1,4 +1,4 @@
-import { useMarketHistory, useMarketQuotes } from "@/domain/market/index.ts";
+import { useMarketHistory, useMarketQuotes } from "@/domain/market";
 import type { ReactNode } from "react";
 import { PercentChangeBadge } from "@/shared/components/PercentChangeBadge.tsx";
 import { SparklineChart } from "@/shared/components/charts/index.ts";

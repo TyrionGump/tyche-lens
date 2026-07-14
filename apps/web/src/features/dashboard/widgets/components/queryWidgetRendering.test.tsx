@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import type { MarketQuote } from "@/domain/market/index.ts";
+import type { MarketQuote } from "@/domain/market";
 import { PriceChartWidget } from "./PriceChartWidget.tsx";
 import { StockQuoteWidget } from "./StockQuoteWidget.tsx";
 

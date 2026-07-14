@@ -1,4 +1,4 @@
-import { MARKET_NEWS_FIXTURES } from "@/domain/market/index.ts";
+import { MARKET_NEWS_FIXTURES } from "@/domain/market";
 
 export function MarketNewsWidget() {
   return (

@@ -1,8 +1,8 @@
 import type { KeyboardEvent } from "react";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { MarketQuote } from "@/domain/market/index.ts";
-import { useMarketQuotes } from "@/domain/market/index.ts";
+import type { MarketQuote } from "@/domain/market";
+import { useMarketQuotes } from "@/domain/market";
 import { PageHeader } from "@/shared/components/layout/PageHeader.tsx";
 import { mergeClassNames } from "@/shared/utilities/mergeClassNames.ts";
 import { AddTickerSearch } from "./components/AddTickerSearch.tsx";
