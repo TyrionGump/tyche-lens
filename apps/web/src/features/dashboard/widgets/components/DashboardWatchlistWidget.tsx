@@ -1,4 +1,4 @@
-import { useMarketQuotes } from "@/domain/market";
+import { useMarketQuotes } from "@/api/market";
 import { DashboardWatchlistQuoteRow } from "./DashboardWatchlistQuoteRow.tsx";
 
 const DASHBOARD_WATCHLIST_SYMBOLS = ["AAPL", "NVDA", "TSLA", "MSFT", "AMZN"];

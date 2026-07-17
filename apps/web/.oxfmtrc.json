@@ -1,5 +1,10 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "printWidth": 100,
-  "ignorePatterns": ["src/domain/market/api/generated/openapi.ts"]
+  "ignorePatterns": [
+    "dist/**",
+    "msw-public/**",
+    "src/api/generated/**",
+    "src/api-mocks/generated/**"
+  ]
 }

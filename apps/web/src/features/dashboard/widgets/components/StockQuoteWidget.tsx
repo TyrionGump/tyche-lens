@@ -1,5 +1,5 @@
-import { useMarketHistory, useMarketQuotes } from "@/domain/market";
 import type { ReactNode } from "react";
+import { useMarketHistory, useMarketQuotes } from "@/api/market";
 import { PercentChangeBadge } from "@/shared/components/PercentChangeBadge.tsx";
 import { SparklineChart } from "@/shared/components/charts/index.ts";
 import { formatCurrency } from "@/shared/utilities/numberFormatters.ts";

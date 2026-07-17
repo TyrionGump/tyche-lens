@@ -1,9 +1,7 @@
-import type { components } from "./generated/openapi.ts";
-import type { MarketQuote } from "../model/marketTypes.ts";
+import type { Quote } from "../generated/models/index.ts";
+import type { MarketQuote } from "@/domain/market";
 
-type ApiQuote = components["schemas"]["Quote"];
-
-export function mapApiQuoteToMarketQuote(quote: ApiQuote): MarketQuote {
+export function mapApiQuoteToMarketQuote(quote: Quote): MarketQuote {
   return {
     symbol: quote.symbol,
     companyName: quote.name,

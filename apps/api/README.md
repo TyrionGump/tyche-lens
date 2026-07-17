@@ -6,14 +6,14 @@ contract-first shape is the part meant to last.
 ## Contract-first workflow
 
 `api/openapi.yaml` is the single source of truth for the HTTP surface.
-Both sides generate from it, so neither can drift from the contract
-without a compile error:
+Both sides generate from it. CI regenerates and byte-compares the committed
+Go and web artifacts, so constraint-only changes cannot leave either side stale:
 
 ```
 api/openapi.yaml
-  ├─ internal/httpapi/gen.go      oapi-codegen: types + strict gin server
-  └─ ../web/src/domain/market/api/generated/openapi.ts
-                                  openapi-typescript (run from apps/web)
+  ├─ internal/httpapi/gen.go              oapi-codegen: types + strict gin server
+  ├─ ../web/src/api/generated/            Orval: Fetch client, DTOs, and Zod validators
+  └─ ../web/src/api-mocks/generated/      Orval: Faker response factories
 ```
 
 To change the API:
@@ -22,11 +22,14 @@ To change the API:
 2. `go generate ./...` — regenerates `internal/httpapi/gen.go`.
 3. Implement the new strict methods (the build fails until you do).
 4. In `apps/web`: `pnpm generate:api`.
+5. Run `go run ./scripts/check-generated.go` here and `pnpm check:generated` in
+   `apps/web`; CI enforces both checks from a clean checkout.
 
 ## Run
 
 ```
 go run ./cmd/tyche-api    # listens on LISTEN_ADDR, default 127.0.0.1:8081
+go run ./scripts/check-generated.go
 go test ./...
 ```
 
@@ -58,6 +61,7 @@ internal/httpapi     transport — generated gen.go + one file per resource
   symbols.go           GetSymbols
 internal/market      domain: mock catalog, quotes, deterministic series
 internal/config      env config (LISTEN_ADDR)
+scripts              development and CI checks for generated bindings
 ```
 
 ## Growing the API
@@ -72,8 +76,8 @@ Deliberately deferred, each with its trigger:
   `GinServerOptions.Middlewares`, never `engine.Use` — global scope
   rejects `/healthz`.
 - **Access logging, CORS, rate limiting, auth** — at real deployment.
-  CORS is unnecessary while `apps/web` reaches the API through its Vite
-  dev proxy.
+  CORS is unnecessary while `apps/web` reaches the API through the Vite
+  proxy in real-API development mode.
 - **Spec splitting** — when `openapi.yaml` gets unwieldy, split per
   resource joined by `$ref` and bundle before codegen; generated output
   and layout stay the same.

@@ -1,4 +1,4 @@
-import { generateSampleSeries } from "../model/generateSampleSeries.ts";
+import { generateSampleSeries } from "@/shared/utilities/generateSampleSeries.ts";
 import type { MarketIndexQuote } from "../model/marketTypes.ts";
 
 export const MARKET_INDEX_FIXTURES: MarketIndexQuote[] = [

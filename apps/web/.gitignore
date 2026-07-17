@@ -1,0 +1,4 @@
+# Reproducible machine-generated API artifacts
+src/api/generated/
+src/api-mocks/generated/
+msw-public/

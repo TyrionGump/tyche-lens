@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { getGetQuotesResponseMock200 } from "../../api-mocks/generated/client.faker.ts";
 import { mapApiQuoteToMarketQuote } from "./mapApiQuoteToMarketQuote.ts";
 
 describe("mapApiQuoteToMarketQuote", () => {
   it("maps API names and preserves raw numeric values", () => {
-    const quote = mapApiQuoteToMarketQuote({
+    const generatedQuote = getGetQuotesResponseMock200().quotes[0];
+    const apiQuote = {
+      ...generatedQuote,
       symbol: "AAPL",
       name: "Apple Inc.",
       exchange: "NASDAQ",
@@ -24,7 +27,9 @@ describe("mapApiQuoteToMarketQuote", () => {
       beta: 1.24,
       eps: 6.49,
       asOf: "2026-07-11T00:00:00Z",
-    });
+    };
+
+    const quote = mapApiQuoteToMarketQuote(apiQuote);
 
     expect(quote.companyName).toBe("Apple Inc.");
     expect(quote.lastPrice).toBe(214.52);

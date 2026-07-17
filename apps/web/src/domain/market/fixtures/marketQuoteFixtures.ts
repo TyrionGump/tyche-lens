@@ -1,5 +1,5 @@
 import type { MarketQuote } from "../model/marketTypes.ts";
-import { generateSampleSeries } from "../model/generateSampleSeries.ts";
+import { generateSampleSeries } from "@/shared/utilities/generateSampleSeries.ts";
 
 export const MARKET_QUOTE_FIXTURES: Record<string, MarketQuote> = {
   AAPL: {

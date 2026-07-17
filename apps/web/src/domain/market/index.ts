@@ -1,4 +1,3 @@
-export { useMarketHistory, useMarketQuotes, useMarketSymbolSearch } from "./api/marketQueries.ts";
 export { MARKET_INDEX_FIXTURES } from "./fixtures/marketIndexFixtures.ts";
 export { MARKET_NEWS_FIXTURES } from "./fixtures/marketNewsFixtures.ts";
 export { MARKET_QUOTE_FIXTURES } from "./fixtures/marketQuoteFixtures.ts";

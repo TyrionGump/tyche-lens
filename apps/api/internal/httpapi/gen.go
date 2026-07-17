@@ -84,8 +84,8 @@ type SymbolsResponse struct {
 
 // GetQuotesParams defines parameters for GetQuotes.
 type GetQuotesParams struct {
-	// Symbols Comma-separated ticker symbols, e.g. AAPL,MSFT. Max 50.
-	Symbols string `form:"symbols" json:"symbols"`
+	// Symbols Comma-separated ticker symbols, e.g. AAPL,MSFT.
+	Symbols []string `form:"symbols" json:"symbols"`
 }
 
 // GetQuoteHistoryParams defines parameters for GetQuoteHistory.
@@ -133,7 +133,7 @@ func (siw *ServerInterfaceWrapper) GetQuotes(c *gin.Context) {
 
 	// ------------- Required query parameter "symbols" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, true, "symbols", c.Request.URL.Query(), &params.Symbols, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", false, true, "symbols", c.Request.URL.Query(), &params.Symbols, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
 	if err != nil {
 		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter symbols: %w", err), http.StatusBadRequest)
 		return

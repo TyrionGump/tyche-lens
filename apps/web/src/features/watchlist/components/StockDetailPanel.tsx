@@ -1,7 +1,7 @@
 import { Fragment } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useMarketHistory } from "@/api/market";
 import type { MarketQuote } from "@/domain/market";
-import { useMarketHistory } from "@/domain/market";
 import { PercentChangeBadge } from "@/shared/components/PercentChangeBadge.tsx";
 import { AreaChart } from "@/shared/components/charts/index.ts";
 import { usePortalContainer } from "@/shared/hooks/usePortalContainer.ts";
