@@ -4,42 +4,52 @@ This document defines the durable module boundaries and development conventions 
 
 ## Dependency direction
 
-The application has four layers with one-way dependencies:
+Production code has one-way dependencies, while `api-mocks` is development/test-only:
 
 ```text
-app      -> features, domain, shared
-features -> domain, shared
-domain   -> shared
-shared   -> other shared modules and third-party packages
+app       -> features, api, domain, shared
+app       -dev-only-> api-mocks
+features  -> api, domain, shared
+api       -> domain, shared
+domain    -> shared
+api-mocks -> api/generated, domain, shared
+shared    -> other shared modules and third-party packages
 ```
 
 The diagram is shorthand for these rules:
 
-| Layer      | May import                                                    | Must not import                |
-| ---------- | ------------------------------------------------------------- | ------------------------------ |
-| `app`      | `features`, `domain`, `shared`, and third-party packages      | —                              |
-| `features` | its own feature, `domain`, `shared`, and third-party packages | `app` or another feature       |
-| `domain`   | its own domain module, `shared`, and third-party packages     | `app` or `features`            |
-| `shared`   | other `shared` modules and third-party packages               | `app`, `features`, or `domain` |
+| Layer       | May import                                                                                               | Must not import                                    |
+| ----------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| `app`       | `features`, `api`, `domain`, `shared`, third-party packages, and the development `api-mocks` entry point | —                                                  |
+| `features`  | its own feature, `api`, `domain`, `shared`, and third-party packages                                     | `app`, `api-mocks`, or another feature             |
+| `api`       | `domain`, `shared`, generated transport code, and third-party code                                       | `app`, `features`, or `api-mocks`                  |
+| `domain`    | its own domain module, `shared`, and third-party packages                                                | `app`, `features`, `api`, or `api-mocks`           |
+| `api-mocks` | `api/generated`, `domain`, `shared`, and third-party packages                                            | `app` or `features`                                |
+| `shared`    | other `shared` modules and third-party packages                                                          | `app`, `features`, `api`, `domain`, or `api-mocks` |
 
-Dependencies must not point upward. Features coordinate domain capabilities but do not become dependencies of the domain model. Shared code is application-agnostic and does not know which feature consumes it.
+`app/enableApiMocking.ts` is the sole exception to the production graph: in development mock mode it dynamically imports `api-mocks/startApiMocking.ts`. No production feature statically imports the API-mocking layer, so production builds can remove it. Features coordinate API and domain capabilities but never become dependencies of either. Shared code is application-agnostic and does not know which feature consumes it.
 
 ## Folder responsibilities
 
 - `src/app` owns startup composition, providers, routing, route-level error handling, and the application shell. It contains no dashboard or watchlist business logic.
+- `src/api` owns application-side HTTP transport, generated DTOs and validators, DTO-to-domain adapters, and server-state queries. It is used in both backend and mocked modes.
 - `src/features` owns user-facing capabilities. A feature may contain its page, focused components, state hooks, interaction hooks, pure models, persistence parsing, and a narrow public API.
-- `src/domain` owns business types, calculations, API adapters, server-state queries, and explicit fixtures. Domain values remain presentation-neutral.
+- `src/domain` owns business types, calculations, and explicit prototype fixtures. It contains no HTTP, TanStack Query, or mock-server code. Domain values remain presentation-neutral.
+- `src/api-mocks` owns all development and test API mocking: generated Faker factories, curated response construction, request handlers, scenarios, and browser-worker startup. Handlers contain behavior; response builders contain data construction.
 - `src/shared` owns reusable UI, browser hooks, styles, and utilities that have independent consumers. It is not a catch-all for code that has not found an owner.
 
 Tests are colocated with the behavior they protect. Do not introduce generic `helpers`, `common`, or catch-all `utils` folders. Extract shared code only after at least two independent consumers need the same concept.
 
 ## Public module APIs
 
-Feature and domain modules expose deliberate public APIs through their root `index.ts` files:
+Feature, API, and domain modules expose deliberate public entry points:
 
 - `features/dashboard/index.ts` exports `DashboardPage`.
 - `features/watchlist/index.ts` exports `WatchlistPage`.
-- `domain/market/index.ts` exports market domain types, query hooks, calculations, and explicitly named fixtures. It does not export generated DTOs.
+- `api/market/index.ts` exports the market server-state hooks and their public result type. It does not export low-level Fetch functions, query keys, or generated DTOs.
+- `domain/market/index.ts` exports market domain types, calculations, and explicitly named prototype fixtures. It does not export transport or mock concerns.
+
+The API-mocking module intentionally has no broad barrel. `app/enableApiMocking.ts` imports only its development entry point; tests import the specific handler or response module they exercise.
 
 Consumers outside a feature or domain module import from that public entry point. Files inside the same module use relative imports.
 
@@ -48,13 +58,14 @@ Consumers outside a feature or domain module import from that public entry point
 import { DashboardPage } from "@/features/dashboard";
 
 // features/watchlist/WatchlistPage.tsx
-import { useMarketQuotes } from "@/domain/market";
+import { useMarketQuotes } from "@/api/market";
+import type { MarketQuote } from "@/domain/market";
 
 // features/dashboard/components/grid/DashboardGrid.tsx
 import { useGridPointerInteractions } from "../../hooks/useGridPointerInteractions.ts";
 ```
 
-Do not add an export to `index.ts` merely to shorten an internal import. Generated OpenAPI types remain private to `domain/market/api`; the adapter is the boundary between transport types and application types.
+Do not add an export to `index.ts` merely to shorten an internal import. Generated OpenAPI types remain private to `api`; the adapter is the boundary between transport types and application types.
 
 Shared code uses the smallest focused public surface. A component may be imported from its explicit file, while cohesive collections such as `shared/components/charts` and `shared/components/settings` expose local barrels. There is intentionally no global shared barrel.
 
@@ -97,10 +108,23 @@ main.tsx -> App -> AppProviders + RouterProvider -> AppShell -> feature page
 Market data crosses an explicit boundary:
 
 ```text
-generated DTO -> market API adapter -> numeric MarketQuote -> TanStack Query -> feature -> component formatter
+OpenAPI -> api/generated client + DTOs + request/response validators
+       \-> api-mocks/generated Faker response factories
+                                      |
+domain fixtures -> mock responses -> handwritten handlers -> browser worker / Node tests
+                                      |
+generated DTO -> api/market adapter -> numeric MarketQuote -> TanStack Query -> feature
 ```
 
-The sibling API contract generates `domain/market/api/generated/openapi.ts`. `marketApiClient.ts` uses those transport types, normalizes errors, and maps quote DTOs through `mapApiQuoteToMarketQuote`. Features consume `MarketQuote` and query hooks, never generated DTOs.
+Orval generates `api/generated/` and `api-mocks/generated/` from the sibling API's OpenAPI contract. `api/market/marketApiClient.ts` wraps the generated Fetch functions, normalizes errors, and maps quote DTOs through `mapApiQuoteToMarketQuote`. Features consume domain models and API query hooks, never generated DTOs.
+
+`api-mocks/market/handlers.ts` is the only authority for mocked HTTP behavior. It validates raw URL parameters with generated Zod schemas before applying domain normalization, then owns stable endpoint semantics and named product scenarios. `api-mocks/market/responses.ts` builds responses through deterministically seeded generated Faker factories; generated response validators verify those payloads in tests. Both browser development and Node integration tests use the same handwritten handlers. There is no generated MSW fallback layer that can silently answer a missing route.
+
+Stable identity and market values come from the explicit domain fixtures because those values are also rendered directly by prototype dashboard sections. They are data, not server behavior. Mock-only generation, scenarios, handlers, and runtime startup stay under `api-mocks`. Handwritten responses spread deliberate overrides over a generated contract-complete object, so newly required fields receive generated values without a parallel manual fixture edit. Removed, renamed, or semantically meaningful fields still fail TypeScript or contract tests and require an intentional decision. Generated outputs are reproducible, ignored by Git, created before a consuming command runs, and never edited directly.
+
+`main.tsx` awaits API-mocking setup before rendering React. `enableApiMocking.ts` dynamically imports `api-mocks/startApiMocking.ts` only in development mock mode. `pnpm dev` creates `msw-public/mockServiceWorker.js` before Vite serves it; `api` mode uses the Go proxy without creating the worker, and every production build includes neither the worker asset nor mock runtime code.
+
+`src/api-mocks` owns application-specific scenarios, handlers, responses, and startup. The generated, Git-ignored project-root `msw-public` directory contains the unbundled MSW transport that intercepts browser requests at the root scope. The separate names distinguish project-owned mock behavior from the tool-owned public transport, while the separate directories preserve the boundary between bundled source and Vite-served assets.
 
 Market capitalization, volume, prices, and percentages remain numbers through the domain and feature layers. Formatting occurs only in the component that presents a value. TanStack Query owns request caching, retries, and request status. Explicit fixtures use the same domain types for dashboard sections without backend endpoints; they are not presented as live API data.
 
@@ -135,10 +159,15 @@ The prototype does not migrate the old `tyche.dash.v1` or `tyche.watchlists.v2` 
 Directories are created only when they contain real files. Test files are colocated with their implementation and omitted from this tree for clarity.
 
 ```text
+msw-public/  # generated on demand
+  mockServiceWorker.js
+
 src/
+  README.md
   main.tsx
   app/
     App.tsx
+    enableApiMocking.ts
     router.tsx
     RouteErrorPage.tsx
     providers/
@@ -152,6 +181,27 @@ src/
         useAppearanceSettings.ts
         useSidebarPreference.ts
         useThemePreference.ts
+
+  api/
+    generated/  # generated on demand
+      client.ts
+      validation.ts
+      models/
+    market/
+      index.ts
+      mapApiQuoteToMarketQuote.ts
+      marketApiClient.ts
+      marketQueries.ts
+
+  api-mocks/
+    startApiMocking.ts
+    mockScenario.ts
+    generated/  # generated on demand
+      client.faker.ts
+    market/
+      catalog.ts
+      handlers.ts
+      responses.ts
 
   features/
     dashboard/
@@ -219,12 +269,6 @@ src/
   domain/
     market/
       index.ts
-      api/
-        generated/
-          openapi.ts
-        mapApiQuoteToMarketQuote.ts
-        marketApiClient.ts
-        marketQueries.ts
       fixtures/
         marketIndexFixtures.ts
         marketNewsFixtures.ts
@@ -232,7 +276,6 @@ src/
         portfolioPositionFixtures.ts
       model/
         calculatePortfolio.ts
-        generateSampleSeries.ts
         marketTypes.ts
 
   shared/
@@ -259,26 +302,15 @@ src/
     utilities/
       chartPaths.ts
       clampNumber.ts
+      generateSampleSeries.ts
       mergeClassNames.ts
       numberFormatters.ts
 ```
 
 ## Development commands
 
-Run the smallest relevant check while working, then the complete gate before handoff.
-
-| Command             | Purpose                                                           |
-| ------------------- | ----------------------------------------------------------------- |
-| `pnpm dev`          | Start the Vite development server                                 |
-| `pnpm generate:api` | Regenerate typed API DTOs from the sibling API's OpenAPI contract |
-| `pnpm test`         | Run the targeted Vitest suite once                                |
-| `pnpm test:watch`   | Run Vitest in watch mode during development                       |
-| `pnpm lint`         | Run oxlint                                                        |
-| `pnpm typecheck`    | Run the TypeScript project build without application output       |
-| `pnpm format`       | Format supported files with oxfmt                                 |
-| `pnpm format:check` | Verify formatting without modifying files                         |
-| `pnpm check`        | Run formatting, lint, type-checking, and tests                    |
-| `pnpm build`        | Type-check and create the production Vite bundle in `dist/`       |
+The project README is the canonical package-script reference. Run the smallest relevant focused
+command while working, then the complete gate before handoff.
 
 The expected final gate is:
 

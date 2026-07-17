@@ -12,9 +12,9 @@ apps/web          React 19 + TypeScript — client generated from the same contr
 apps/data-engine  Rust — temporary demo: scheduled FMP collection → file store → read API
 ```
 
-- **Contract-first.** `apps/api/api/openapi.yaml` describes the HTTP surface. The Go server interface (oapi-codegen, strict) and the TypeScript client types (openapi-typescript) are both generated from it, so contract drift fails compilation on either side. See [ADR 0002](decisions/0002-api-contract-management.md) — written before the monorepo; it carries a note on what that changed.
+- **Contract-first.** `apps/api/api/openapi.yaml` describes the HTTP surface. The Go server interface (oapi-codegen, strict) and the web contract artifacts (Orval-generated Fetch client, DTOs, Zod request/response validators, and Faker response factories) are generated from it. Handwritten MSW handlers remain the single mock-behavior authority. CI regenerates and byte-compares both committed outputs, then tests the API and web app. See [ADR 0002](decisions/0002-api-contract-management.md) — written before the monorepo; it carries a note on what that changed.
 - **Mock market.** The API currently serves a deterministic mock catalog (symbols, quotes, price history); the contract-first shape is the part meant to last. Postgres is provisioned via docker-compose but nothing reads it yet.
-- **Web app.** Feature-first boundaries, TanStack Query for server state, Vite dev proxy for `/v1`. See [`apps/web/docs/ARCHITECTURE.md`](../apps/web/docs/ARCHITECTURE.md).
+- **Web app.** Feature-first boundaries and TanStack Query for server state. Local development uses contract-driven MSW responses by default; `pnpm dev:api` opts into the Vite `/v1` proxy for the Go service. See [`apps/web/docs/ARCHITECTURE.md`](../apps/web/docs/ARCHITECTURE.md).
 - **Data-engine demo.** A temporary, standalone Rust proof of a collect-and-store flow: scheduled FMP collection within free-tier quota, raw responses stored as JSON envelopes on disk, derived metrics (TTM EPS, PE, dividend yield) computed at serve time. Not wired to `api`/`web`; it explores a scheduled-collection alternative to pure compute-on-request and informs where a shared data store should live. See [`apps/data-engine/README.md`](../apps/data-engine/README.md).
 
 ## Core principle: compute-on-request

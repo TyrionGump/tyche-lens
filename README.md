@@ -9,7 +9,7 @@ Personal investment-information and US-equity market-data dashboard, built as a 
 Contract-first mock data, end to end:
 
 - **[`apps/api`](apps/api/README.md)** — Go backend (gin). Serves mock quotes, symbols, and price history. The OpenAPI contract (`apps/api/api/openapi.yaml`) is the single source of truth; the server interface is generated from it.
-- **[`apps/web`](apps/web/README.md)** — React 19 + TypeScript dashboard (Vite, Tailwind, TanStack Query). Consumes the API through a client generated from the same contract.
+- **[`apps/web`](apps/web/README.md)** — React 19 + TypeScript dashboard (Vite, Tailwind, TanStack Query). Generates its client, request/response validators, and Faker response factories from the same contract; handwritten MSW handlers provide the default backend-free workflow.
 
 Plus a standalone experiment:
 

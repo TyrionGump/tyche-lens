@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import * as marketDomain from "./index.ts";
 
 describe("market domain public API", () => {
-  it("exposes query hooks without leaking transport functions or cache keys", () => {
-    expect(marketDomain).toHaveProperty("useMarketQuotes");
+  it("does not expose API transport or server-state hooks", () => {
+    expect(marketDomain).not.toHaveProperty("useMarketQuotes");
+    expect(marketDomain).not.toHaveProperty("useMarketHistory");
+    expect(marketDomain).not.toHaveProperty("useMarketSymbolSearch");
     expect(marketDomain).not.toHaveProperty("fetchMarketQuotes");
     expect(marketDomain).not.toHaveProperty("fetchMarketHistory");
     expect(marketDomain).not.toHaveProperty("searchMarketSymbols");

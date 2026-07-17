@@ -4,6 +4,7 @@
   "categories": {
     "correctness": "error"
   },
+  "ignorePatterns": ["src/api/generated/**", "src/api-mocks/generated/**"],
   "rules": {
     "import/no-cycle": [
       "error",

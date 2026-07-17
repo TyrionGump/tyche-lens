@@ -4,33 +4,35 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "typecheck": "tsc -b",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
+    "dev": "pnpm generate:api && pnpm generate:msw-worker && vite --mode mock",
+    "dev:api": "pnpm generate:api && vite --mode api",
+    "check": "pnpm generate:api && pnpm format:check && pnpm lint && tsc -b && vitest run",
+    "build": "pnpm generate:api && tsc -b && vite build --mode production",
+    "preview": "vite preview",
+    "generate:api": "orval --config orval.config.ts --fail-on-warnings",
+    "generate:msw-worker": "msw init msw-public --save",
+    "test": "pnpm generate:api && vitest run",
+    "test:watch": "pnpm generate:api && vitest",
+    "typecheck": "pnpm generate:api && tsc -b",
+    "lint": "oxlint src vite.config.ts vite.config.test.ts orval.config.ts",
+    "lint:fix": "oxlint --fix src vite.config.ts vite.config.test.ts orval.config.ts",
     "format": "oxfmt",
     "format:check": "oxfmt --check",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "check": "oxfmt --check && oxlint && tsc -b && vitest run",
     "prepare": "cd ../.. && husky apps/web/.husky",
-    "precommit": "lint-staged",
-    "preview": "vite preview",
-    "generate:api": "pnpm --package=typescript@5.9.3 --package=openapi-typescript@7.13.0 dlx openapi-typescript ../api/api/openapi.yaml -o src/domain/market/api/generated/openapi.ts"
+    "precommit": "lint-staged"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.17",
     "@radix-ui/react-dropdown-menu": "^2.1.18",
     "@tanstack/react-query": "^5.101.2",
     "clsx": "^2.1.1",
-    "openapi-fetch": "^0.17.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.18.0",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "10.5.0",
     "@tailwindcss/vite": "^4.3.1",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
@@ -38,12 +40,15 @@
     "@vitejs/plugin-react": "^6.0.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
+    "msw": "2.15.0",
+    "orval": "8.22.0",
     "oxfmt": "^0.54.0",
     "oxlint": "^1.69.0",
     "tailwindcss": "^4.3.1",
     "typescript": "~7.0.2",
     "vite": "^8.0.12",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "zod": "4.4.3"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs}": [
@@ -55,5 +60,10 @@
   "engines": {
     "node": ">=22.22.1"
   },
-  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916"
+  "packageManager": "pnpm@11.5.2+sha512.71c631e382066efc25625d5cf029075de07b61b37f6e27350fbd84b1bda5864c8c1967adc280776b45c30a715c0359a3be08fef42d5bb09e2b99029979692916",
+  "msw": {
+    "workerDirectory": [
+      "msw-public"
+    ]
+  }
 }

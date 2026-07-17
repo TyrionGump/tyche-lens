@@ -4,12 +4,12 @@ on:
   push:
     paths:
       - "apps/web/**"
-      - "apps/api/api/openapi.yaml"
+      - "apps/api/**"
       - ".github/workflows/quality.yml"
   pull_request:
     paths:
       - "apps/web/**"
-      - "apps/api/api/openapi.yaml"
+      - "apps/api/**"
       - ".github/workflows/quality.yml"
 
 permissions:
@@ -25,6 +25,19 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Install Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: apps/api/go.mod
+
+      - name: Verify generated Go artifacts
+        working-directory: apps/api
+        run: go run ./scripts/check-generated.go
+
+      - name: Test API
+        working-directory: apps/api
+        run: go test ./...
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6

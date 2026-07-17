@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { UseQueryResult } from "@tanstack/react-query";
+import type { MarketQuote, SymbolSearchResult } from "@/domain/market";
 import { fetchMarketHistory, fetchMarketQuotes, searchMarketSymbols } from "./marketApiClient.ts";
-import type { MarketQuote, SymbolSearchResult } from "../model/marketTypes.ts";
 
 export const marketQueryKeys = {
   root: ["market"] as const,

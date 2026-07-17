@@ -1,11 +1,10 @@
-import createClient from "openapi-fetch";
-import type { paths } from "./generated/openapi.ts";
+import { getQuoteHistory, getQuotes, getSymbols } from "../generated/client.ts";
+import type { MarketQuote, SymbolSearchResult } from "@/domain/market";
 import { mapApiQuoteToMarketQuote } from "./mapApiQuoteToMarketQuote.ts";
-import type { MarketQuote, SymbolSearchResult } from "../model/marketTypes.ts";
-
-const marketApiClient = createClient<paths>({ baseUrl: "/" });
 
 function createMarketApiError(error: unknown): Error {
+  if (error instanceof globalThis.Error) return error;
+
   if (
     typeof error === "object" &&
     error !== null &&
@@ -18,21 +17,26 @@ function createMarketApiError(error: unknown): Error {
   return new Error("Market data request failed");
 }
 
+async function requestMarketApi<Response>(request: () => Promise<Response>): Promise<Response> {
+  try {
+    return await request();
+  } catch (error) {
+    throw createMarketApiError(error);
+  }
+}
+
 export async function fetchMarketQuotes(
   symbols: readonly string[],
   signal?: AbortSignal,
 ): Promise<Record<string, MarketQuote>> {
   if (symbols.length === 0) return {};
 
-  const { data, error } = await marketApiClient.GET("/v1/quotes", {
-    params: { query: { symbols: symbols.join(",") } },
-    signal,
-  });
+  const response = await requestMarketApi(() => getQuotes({ symbols: [...symbols] }, { signal }));
 
-  if (!data) throw createMarketApiError(error);
+  if (response.status !== 200) throw createMarketApiError(response.data);
 
   return Object.fromEntries(
-    data.quotes.map((quote) => {
+    response.data.quotes.map((quote) => {
       const marketQuote = mapApiQuoteToMarketQuote(quote);
       return [marketQuote.symbol, marketQuote];
     }),
@@ -44,14 +48,13 @@ export async function searchMarketSymbols(
   signal?: AbortSignal,
 ): Promise<SymbolSearchResult[]> {
   const trimmedQuery = query.trim();
-  const { data, error } = await marketApiClient.GET("/v1/symbols", {
-    params: { query: trimmedQuery ? { query: trimmedQuery } : {} },
-    signal,
-  });
+  const response = await requestMarketApi(() =>
+    getSymbols(trimmedQuery ? { query: trimmedQuery } : undefined, { signal }),
+  );
 
-  if (!data) throw createMarketApiError(error);
+  if (response.status !== 200) throw createMarketApiError(response.data);
 
-  return data.symbols.map((listing) => ({
+  return response.data.symbols.map((listing) => ({
     symbol: listing.symbol,
     companyName: listing.name,
     exchange: listing.exchange,
@@ -64,15 +67,11 @@ export async function fetchMarketHistory(
   pointCount: number,
   signal?: AbortSignal,
 ): Promise<number[]> {
-  const { data, error } = await marketApiClient.GET("/v1/quotes/{symbol}/history", {
-    params: {
-      path: { symbol },
-      query: { points: pointCount },
-    },
-    signal,
-  });
+  const response = await requestMarketApi(() =>
+    getQuoteHistory(symbol, { points: pointCount }, { signal }),
+  );
 
-  if (!data) throw createMarketApiError(error);
+  if (response.status !== 200) throw createMarketApiError(response.data);
 
-  return data.points;
+  return response.data.points;
 }

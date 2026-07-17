@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { type SymbolSearchResult, useMarketSymbolSearch } from "@/domain/market";
+import { type SymbolSearchResult, useMarketSymbolSearch } from "@/api/market";
 import { mergeClassNames } from "@/shared/utilities/mergeClassNames.ts";
 import { useClickOutside } from "../hooks/useClickOutside.ts";
 

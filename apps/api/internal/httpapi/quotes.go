@@ -3,7 +3,6 @@ package httpapi
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/TyrionGump/tyche-api/internal/market"
 )
@@ -16,8 +15,8 @@ const (
 )
 
 func (s *Server) GetQuotes(_ context.Context, request GetQuotesRequestObject) (GetQuotesResponseObject, error) {
-	parts := strings.Split(request.Params.Symbols, ",")
-	
+	parts := request.Params.Symbols
+
 	if len(parts) > maxSymbolsPerRequest {
 		return GetQuotes400JSONResponse{
 			Code:    "invalid_request",
