@@ -17,8 +17,8 @@ vi.mock("react-router-dom", async (importOriginal) => {
 
 vi.mock("@/features/dashboard", () => ({ DashboardPage: () => null }));
 vi.mock("@/features/watchlist", () => ({ WatchlistPage: () => null }));
+vi.mock("@/app/shell", () => ({ AppShell: () => null }));
 vi.mock("./RouteErrorPage.tsx", () => ({ RouteErrorPage: () => null }));
-vi.mock("./shell/AppShell.tsx", () => ({ AppShell: () => null }));
 
 describe("application routes", () => {
   test("provides standalone root and themed descendant error boundaries", async () => {
