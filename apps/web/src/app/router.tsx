@@ -1,8 +1,8 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
+import { AppShell } from "@/app/shell";
 import { DashboardPage } from "@/features/dashboard";
 import { WatchlistPage } from "@/features/watchlist";
 import { RouteErrorPage } from "./RouteErrorPage.tsx";
-import { AppShell } from "./shell/AppShell.tsx";
 
 export const router = createBrowserRouter([
   {

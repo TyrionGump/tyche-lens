@@ -11,6 +11,17 @@
       {
         "ignoreTypes": false
       }
+    ],
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "regex": "^@/app/shell/|^(?:\\.\\.?/)+(?:[^/]+/)*shell/",
+            "message": "Import AppShell from \"@/app/shell\"; files below shell are internal."
+          }
+        ]
+      }
     ]
   },
   "env": {

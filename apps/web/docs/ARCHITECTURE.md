@@ -42,8 +42,9 @@ Tests are colocated with the behavior they protect. Do not introduce generic `he
 
 ## Public module APIs
 
-Feature, API, and domain modules expose deliberate public entry points:
+Application, feature, API, and domain modules expose deliberate public entry points:
 
+- `app/shell/index.ts` exports `AppShell`. Its components and hooks are internal implementation details.
 - `features/dashboard/index.ts` exports `DashboardPage`.
 - `features/watchlist/index.ts` exports `WatchlistPage`.
 - `api/market/index.ts` exports the market server-state hooks and their public result type. It does not export low-level Fetch functions, query keys, or generated DTOs.
@@ -51,10 +52,11 @@ Feature, API, and domain modules expose deliberate public entry points:
 
 The API-mocking module intentionally has no broad barrel. `app/enableApiMocking.ts` imports only its development entry point; tests import the specific handler or response module they exercise.
 
-Consumers outside a feature or domain module import from that public entry point. Files inside the same module use relative imports.
+Consumers outside a module import from that public entry point. Files inside the same module use relative imports.
 
 ```ts
 // app/router.tsx
+import { AppShell } from "@/app/shell";
 import { DashboardPage } from "@/features/dashboard";
 
 // features/watchlist/WatchlistPage.tsx
@@ -137,7 +139,7 @@ Feature state stored in `localStorage` uses versioned envelopes and runtime pars
 {
   schemaVersion: 1,
   density,
-  widgets,
+  widgets
 }
 
 // tyche.watchlists
@@ -173,6 +175,7 @@ src/
     providers/
       AppProviders.tsx
     shell/
+      index.ts
       AppShell.tsx
       ApplicationHeader.tsx
       SidebarNavigation.tsx

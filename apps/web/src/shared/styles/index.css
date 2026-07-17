@@ -8,7 +8,6 @@
   --accent: #6b4dfb;
   --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--card));
   --radius: 16px;
-  --sidebar-w: 220px;
   font-family: "Plus Jakarta Sans", system-ui, sans-serif;
   /* Three-zone app frame: a full-width top bar, a sidebar, and a scrolling main area — the main
      area (not the shell) is the page scroll container. */
