@@ -1,5 +1,5 @@
 [package]
-name = "tyche-data-engine-rust"
+name = "data-engine"
 version = "0.1.0"
 edition = "2024"
 
@@ -10,12 +10,13 @@ unsafe_code = "forbid"
 anyhow = "1"
 axum = "0.8"
 chrono = { version = "0.4", features = ["serde"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "net"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "signal", "time", "net", "fs"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
 [dev-dependencies]
 tempfile = "3"
+tower = { version = "0.5", features = ["util"] }
