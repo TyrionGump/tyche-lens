@@ -1,117 +1,107 @@
-# tyche-data-engine-rust
+# data-engine
 
-**Temporary demo app.** A minimal Rust proof of the watchlist data flow:
+A small Rust prototype of one market-data flow:
 
-> scheduled FMP collection → local file store → consumers query the store,
-> never FMP.
+```text
+FMP quote API -> scheduled collector -> local JSON snapshot -> read-only HTTP API
+```
 
-It exists to inform the real architecture decision (where the shared store
-lives and who serves it). It is not the production engine.
+The prototype answers one architectural question: can data be collected on a
+schedule and served from a local store without API readers calling the provider?
+It is intentionally not a complete market-data engine.
 
-## What it does
+## Scope
 
-- Collects four FMP `/stable` datasets per configured symbol — `quote`,
-  `profile`, `income-statement?period=quarter&limit=4`, `dividends` — the
-  inputs for one complete `apps/web` watchlist row.
-- Stores each response unmodified under `data/<SYMBOL>/<dataset>.json` in an
-  envelope with `fetched_at` (same-directory temp file + atomic rename;
-  failures keep the last good file).
-- Refreshes quotes every `QUOTE_REFRESH_MINUTES` while running; the slow
-  datasets only when older than `SLOW_REFRESH_HOURS`. Missing files are
-  backfilled at startup.
-- Serves the store over HTTP; derived metrics are computed at serve time so
-  stored data stays raw and the math stays transparent:
-  - `eps_ttm` — sum of diluted EPS over the latest four quarters
-  - `pe` — price / TTM EPS, `null` unless both are positive
-  - `dividend_yield_pct` — trailing-365-day dividends ÷ price × 100
+The service:
 
-## Deliberate non-goals
+- collects current quotes for a small configured symbol list;
+- maps FMP responses into a provider-independent `Quote` type;
+- stores the latest quotes in one local JSON file;
+- keeps the last good quote when a later provider request fails;
+- serves the stored snapshot through `GET /v1/quotes`; and
+- exposes `GET /healthz` for a basic liveness check.
 
-Per-user subscriptions, market-hours calendar, retry ladder, request
-batching, auth on the read API (loopback bind only), and non-US symbols
-(FMP's free tier rejects them). The Go engine (`tyche-data-engine`) owns the
-production-shaped versions of those ideas.
+Profiles, financial statements, dividends, valuation calculations, market
+calendars, authentication, retries, and database storage are deliberately
+deferred. Each would add concepts without helping prove the core flow.
 
-## Code layout & conventions
+`price` is an `f64` only because this prototype transports and displays it; it
+does not perform financial arithmetic. Introduce a decimal money type before
+adding calculations.
 
-Standard Rust service layout — `src/lib.rs` owns the modules, `src/main.rs`
-is a thin binary wrapper — with the module tree mirroring the data flow:
+## Code layout
 
 ```text
 src/
-  domain/      shared vocabulary: Dataset enum, symbol validity rules
-  collect.rs   WRITE path: scheduler/orchestration (FMP → store)
-  collect/fmp.rs   the FMP HTTP client
-  store.rs     the seam both paths meet at: file store + Envelope
-  serve.rs     READ path: HTTP routes (store → consumers)
-  serve/snapshot.rs   watchlist-row assembly, private to `serve`
-  config.rs    env → Config (Debug impl redacts the API key)
+  main.rs                   executable crate root and logging setup
+  app.rs                    startup, dependency wiring, and shutdown
+  app/config.rs             environment configuration
+  app/http_api.rs           read-only HTTP routes
+  market_data.rs            quote pipeline and read-only facade
+  market_data/collector.rs  scheduled refresh workflow
+  market_data/fmp.rs        provider adapter and response mapping
+  market_data/quote.rs      provider-independent data model
+  market_data/store.rs      JSON snapshot persistence
 ```
 
-Unit tests live inline per module in `#[cfg(test)] mod tests` blocks (the
-Rust convention — they exercise private items and are compiled out of
-release builds); black-box tests of the HTTP surface live in `tests/` as
-integration tests. Provider responses are deserialized into typed structs
-at read time.
-
-Deferred until there is a trigger: typed error enums (`thiserror`) if this
-crate is ever consumed as a library (`anyhow` is the norm for application
-code); cooperative shutdown for the collector task once writes are more
-than one atomic rename; CI once the repo stops being temporary.
+The package contains one binary crate. Its two top-level modules remain private:
+`app` owns configuration and HTTP concerns, while `market_data` offers `app` a
+quote pipeline and a read-only reader. The collector, provider adapter, model
+construction, and persistence modules are nested privately inside
+`market_data`, so the HTTP layer cannot reach into storage or provider details.
+There are no traits or extra abstraction layers yet because the prototype has
+only one provider and one store implementation.
 
 ## Run
 
-```powershell
-$env:FMP_API_KEY = '<key>'          # required; never committed
-$env:SYMBOLS = 'AAPL,MSFT'          # optional, default AAPL,NVDA,TSLA,MSFT,AMZN
+```sh
+export FMP_API_KEY="<key>"
 cargo run
 ```
 
-The service reads the process environment directly and does not load `.env`.
-See `.env.example` for all variables.
+Optional configuration:
 
-## Read API
+| Variable | Default |
+| --- | --- |
+| `SYMBOLS` | `AAPL,MSFT` |
+| `LISTEN_ADDR` | `127.0.0.1:8090` |
+| `DATA_FILE` | `./data/quotes.json` |
+| `QUOTE_REFRESH_MINUTES` | `15` |
+| `FMP_BASE_URL` | `https://financialmodelingprep.com/stable` |
 
-```text
-GET /healthz                        → "ok"
-GET /v1/symbols                     → {"symbols": ["AAPL", ...]}
-GET /v1/symbols/{symbol}/snapshot   → one watchlist row, e.g.:
-```
+The service reads the process environment directly; it does not load
+`.env.example`.
+
+## API
+
+`GET /v1/quotes` returns the stored snapshot:
 
 ```json
 {
-  "symbol": "AAPL",
-  "company_name": "Apple Inc.",
-  "exchange": "NASDAQ",
-  "sector": "Technology",
-  "price": 315.32,
-  "change_percent": -0.28,
-  "market_cap": 4631217093920.0,
-  "year_high": 317.4,
-  "year_low": 201.5,
-  "beta": 1.097,
-  "eps_ttm": 8.29,
-  "pe": 38.0,
-  "dividend_yield_pct": 1.31,
-  "sources": { "quote": "2026-07-11T05:00:00Z", "profile": "..." }
+  "quotes": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "exchange": "NASDAQ",
+      "price": 315.32,
+      "change_percent": -0.28461,
+      "source": "fmp",
+      "fetched_at": "2026-07-18T03:00:00Z"
+    }
+  ]
 }
 ```
 
-Values above are illustrative. Missing datasets serve as `null` fields, with
-per-dataset `fetched_at` stamps under `sources` for staleness labeling.
+On a cold start the response can briefly be empty while the first collection is
+running. Existing stored quotes are available immediately after a restart.
 
-## FMP quota
+## Validate
 
-Free tier: 250 requests/day. Cold start costs 4 requests per symbol; each
-refresh tick costs 1 per symbol (quotes only). Five symbols refreshed every
-15 minutes for a 3-hour demo session ≈ 80 requests.
-
-## Validation
-
-```powershell
+```sh
+cargo fmt --check
 cargo test
-cargo clippy
+cargo clippy --all-targets --all-features -- -D warnings
 ```
 
-Tests use fixtures captured from real FMP responses (`tests/fixtures/`) and
-local mock HTTP servers; no API key required.
+Tests use a captured FMP quote fixture and temporary files. They do not require
+an API key or open network ports.
