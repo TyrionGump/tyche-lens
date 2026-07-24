@@ -2,15 +2,9 @@ name: Quality
 
 on:
   push:
-    paths:
-      - "apps/web/**"
-      - "apps/api/**"
-      - ".github/workflows/quality.yml"
+    branches:
+      - main
   pull_request:
-    paths:
-      - "apps/web/**"
-      - "apps/api/**"
-      - ".github/workflows/quality.yml"
 
 permissions:
   contents: read
@@ -38,6 +32,23 @@ jobs:
       - name: Test API
         working-directory: apps/api
         run: go test ./...
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Check data engine formatting
+        working-directory: apps/data-engine
+        run: cargo fmt --check
+
+      - name: Test data engine
+        working-directory: apps/data-engine
+        run: cargo test --locked
+
+      - name: Run data engine Clippy
+        working-directory: apps/data-engine
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
