@@ -6,8 +6,9 @@ contract-first shape is the part meant to last.
 ## Contract-first workflow
 
 `api/openapi.yaml` is the single source of truth for the HTTP surface.
-Both sides generate from it. CI regenerates and byte-compares the committed
-Go and web artifacts, so constraint-only changes cannot leave either side stale:
+Both sides generate from it. CI byte-compares the committed Go artifact and
+regenerates the ignored web artifacts before checking them, so both sides are
+validated against the same contract:
 
 ```
 api/openapi.yaml
@@ -22,8 +23,10 @@ To change the API:
 2. `go generate ./...` — regenerates `internal/httpapi/gen.go`.
 3. Implement the new strict methods (the build fails until you do).
 4. In `apps/web`: `pnpm generate:api`.
-5. Run `go run ./scripts/check-generated.go` here and `pnpm check:generated` in
-   `apps/web`; CI enforces both checks from a clean checkout.
+5. Run `go run ./scripts/check-generated.go` and `go test ./...` here.
+6. In `apps/web`, run `pnpm check` and `pnpm build`.
+
+CI runs both the API and UI jobs when this contract changes.
 
 ## Run
 
