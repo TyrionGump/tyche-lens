@@ -20,6 +20,7 @@ jobs:
     outputs:
       api: ${{ steps.filter.outputs.api }}
       data_engine: ${{ steps.filter.outputs.data_engine }}
+      sec_pipeline: ${{ steps.filter.outputs.sec_pipeline }}
       ui: ${{ steps.filter.outputs.ui }}
     steps:
       - name: Check out repository
@@ -35,6 +36,9 @@ jobs:
               - '.github/workflows/ci.yaml'
             data_engine:
               - 'apps/data-engine/**'
+              - '.github/workflows/ci.yaml'
+            sec_pipeline:
+              - 'apps/sec-pipeline/**'
               - '.github/workflows/ci.yaml'
             ui:
               - 'apps/web/**'
@@ -91,6 +95,38 @@ jobs:
       - name: Run data engine Clippy
         run: cargo clippy --locked --all-targets --all-features -- -D warnings
 
+  sec_pipeline:
+    name: SEC pipeline
+    needs: changes
+    if: ${{ github.event_name == 'workflow_dispatch' || needs.changes.outputs.sec_pipeline == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/sec-pipeline
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.11.32"
+          python-version: "3.14"
+          enable-cache: true
+          cache-dependency-glob: apps/sec-pipeline/uv.lock
+
+      - name: Synchronize the locked environment
+        run: uv sync --locked
+
+      - name: Check SEC pipeline architecture
+        run: uv run --locked lint-imports
+
+      - name: Test SEC pipeline
+        run: uv run --locked python -m unittest discover -s tests -v
+
+      - name: Build SEC pipeline package
+        run: uv build
+
   ui:
     name: UI
     needs: changes
@@ -130,6 +166,7 @@ jobs:
       - changes
       - api
       - data_engine
+      - sec_pipeline
       - ui
     if: ${{ always() }}
     runs-on: ubuntu-latest
@@ -139,16 +176,22 @@ jobs:
           CHANGES_RESULT: ${{ needs.changes.result }}
           API_RESULT: ${{ needs.api.result }}
           DATA_ENGINE_RESULT: ${{ needs.data_engine.result }}
+          SEC_PIPELINE_RESULT: ${{ needs.sec_pipeline.result }}
           UI_RESULT: ${{ needs.ui.result }}
         run: |
-          printf 'changes=%s api=%s data_engine=%s ui=%s\n' \
-            "$CHANGES_RESULT" "$API_RESULT" "$DATA_ENGINE_RESULT" "$UI_RESULT"
+          printf 'changes=%s api=%s data_engine=%s sec_pipeline=%s ui=%s\n' \
+            "$CHANGES_RESULT" "$API_RESULT" "$DATA_ENGINE_RESULT" \
+            "$SEC_PIPELINE_RESULT" "$UI_RESULT"
 
           if [[ "$CHANGES_RESULT" != "success" ]]; then
             exit 1
           fi
 
-          for result in "$API_RESULT" "$DATA_ENGINE_RESULT" "$UI_RESULT"; do
+          for result in \
+            "$API_RESULT" \
+            "$DATA_ENGINE_RESULT" \
+            "$SEC_PIPELINE_RESULT" \
+            "$UI_RESULT"; do
             if [[ "$result" != "success" && "$result" != "skipped" ]]; then
               exit 1
             fi

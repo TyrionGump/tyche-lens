@@ -1,0 +1,77 @@
+[project]
+name = "tyche-lens-sec-pipeline"
+version = "0.1.0"
+description = "Traceable SEC Company Facts evidence pipeline"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+tyche-sec-pipeline = "sec_pipeline.main:main"
+
+[build-system]
+requires = ["uv_build>=0.11.32,<0.13"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "sec_pipeline"
+
+[dependency-groups]
+dev = [
+    "import-linter>=2.14",
+    "ruff>=0.16.4",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.importlinter]
+root_package = "sec_pipeline"
+
+# Each layer may import the layers below it, never above. Modules sharing a
+# layer (separated by |) are independent and must not import one another.
+[[tool.importlinter.contracts]]
+name = "Pipeline layers"
+type = "layers"
+containers = ["sec_pipeline"]
+exhaustive = true
+layers = [
+    "main",
+    "runner | settings",
+    "publishing",
+    "evidence | sources | profiles | identity | records | validation",
+    "models | storage | locks",
+]
+
+# Interiors of each package, so direction is policed inside them too. Each is
+# exhaustive: a new module must be placed in the order deliberately.
+[[tool.importlinter.contracts]]
+name = "sources interior"
+type = "layers"
+containers = ["sec_pipeline.sources"]
+exhaustive = true
+layers = ["acquisition | snapshot", "store"]
+
+# No edge exists today. Ordered rather than independent so that if selection ever
+# reads normalize's artifact back, it may do so through a normalize-owned reader —
+# the pattern every other stage boundary already uses.
+[[tool.importlinter.contracts]]
+name = "evidence interior"
+type = "layers"
+containers = ["sec_pipeline.evidence"]
+exhaustive = true
+layers = ["selection", "normalize"]
+
+[[tool.importlinter.contracts]]
+name = "publishing interior"
+type = "layers"
+containers = ["sec_pipeline.publishing"]
+exhaustive = true
+layers = ["delivery", "company"]
+
+[[tool.importlinter.contracts]]
+name = "profiles interior"
+type = "layers"
+containers = ["sec_pipeline.profiles"]
+exhaustive = true
+layers = ["registry", "aapl | jpmorgan | walmart", "common"]
